@@ -1,0 +1,32 @@
+{
+  "name": "pit-stop",
+  "version": "1.0.0",
+  "description": "A smart, all-in-one tracker for your car's maintenance, expenses, and service history, keeping every vehicle running smoothly and on schedule.",
+  "main": "dist/index.js",
+  "repository": "https://github.com/Leialoha/Pit-Stop.git",
+  "author": "Leialoha <github@leialoha.dev> (https://github.com/Leialoha)",
+  "license": "All Rights Reserved",
+  "private": true,
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-async-handler": "^1.2.0",
+    "mongoose": "^8.19.2",
+    "url": "^0.11.4",
+    "uuid": "^13.0.0",
+    "uuid-validate": "^0.0.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.9.1",
+    "@types/uuid": "^11.0.0",
+    "@types/uuid-validate": "^0.0.3",
+    "dotenv": "^17.2.3",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  }
+}
