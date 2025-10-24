@@ -1,5 +1,6 @@
 > [!NOTE]
-> Everything that is checked off is going to be / or already implemented
+> Everything that is checked off is going to be / or already implemented.
+> 
 > Attachments might not be implemented (takes up too much memory)
 
 ### 🚗 **Vehicle Information**
