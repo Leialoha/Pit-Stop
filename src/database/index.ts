@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { DATABASE_URL, DATABASE_NAME } from '../constants';
 
-export * from './Interfaces';
-export * from './Schemas';
+export * from './interfaces';
+export * from './schemas';
 
 export async function connectDB() {
     console.log(`MongoDB connecting to: ${DATABASE_URL}`);

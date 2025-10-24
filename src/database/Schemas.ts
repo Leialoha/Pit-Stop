@@ -1,5 +1,5 @@
 import { model, Schema, SchemaOptions } from 'mongoose';
-import { IVehicle, IReminder, IExpenseRecord, IServiceRecord } from './Interfaces';
+import { IVehicle, IReminder, IExpenseRecord, IServiceRecord } from './interfaces';
 
 const VehicleSchema = new Schema<IVehicle>({
     vehicleID: { type: Schema.Types.ObjectId, unique: true, required: true },
