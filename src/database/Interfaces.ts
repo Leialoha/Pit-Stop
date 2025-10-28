@@ -1,14 +1,51 @@
 import { Types } from "mongoose"
 
+export type MongoEntry = {
+    /** Unique ID of the entry */
+    _id: Types.ObjectId,
+}
+
+/** Attachment Information */
+export type IAttachment = {
+    /** Unique ID of the uploader */
+    uploader: Types.ObjectId,
+    /** File url of the attachment */
+    fileUrl: string,
+    /** File name of the attachment */
+    fileName: string,
+    /** Date of the attachment upload */
+    uploadedAt: Date | string,
+} & MongoEntry
+
+/** User Information */
+export type IUser = {
+    /** User name (e.g., "John Doe") */
+    name: string,
+    /** Phone number */
+    phone: string,
+    /** Recovery Email */
+    email: string
+} & MongoEntry
+
+/** Group Information */
+export type IGroup = {
+    /** Display name (e.g., "Personal Cars") */
+    name: string,
+    /** Details about group */
+    description?: string,
+    /** Unique IDs of the vehicles */
+    vehicles: Types.ObjectId[],
+    /** Unique IDs of the users */
+    users: Types.ObjectId[],
+} & MongoEntry
+
 /** Vehicle Information */
 export type IVehicle = {
-    /** Unique ID of the vehicle */
-    vehicleID: Types.ObjectId,
-    /** Display name (e.g., "Tara's Civic") */
+    /** Display name */
     name?: string,
-    /** Manufacturer (e.g., Honda) */
+    /** Manufacturer */
     make: string,
-    /** Vehicle model (e.g., Civic LX) */
+    /** Vehicle model */
     model: string,
     /** Model year */
     year: string,
@@ -16,38 +53,38 @@ export type IVehicle = {
     vin?: string,
     /** Optional for quick reference */
     licensePlate?: string
-}
+} & MongoEntry
 
 /** Maintenance / Service Records */
 export type IServiceRecord = {
-    /** Unique ID of the service */
-    serviceID: Types.ObjectId,
     /** Unique ID of the vehicle */
     vehicleID: Types.ObjectId,
     /** Unique ID of the expense */
     recordID?: Types.ObjectId,
     /** Mileage at the time of service */
-    odometerAtService?: string,
-    /** (Oil Change, Tire Rotation, Brake Service, etc.) */
+    odometer: number,
+    /** Oil Change, Tire Rotation, Brake Service, etc. */
     serviceType: string,
     /** For scheduling reminders (based on Date) */
-    nextDueDate?: string,
+    nextDueDate?: Date | string,
     /** For scheduling reminders (based on Mileage) */
     nextDueMileage?: number,
     /** Cost of the work */
     laborCost?: number,
     /** Cost of materials used */
     partsCost?: number,
-}
+} & MongoEntry
 
 /** Receipts / Expenses */
 export type IExpenseRecord = {
-    /** Unique ID of the expense */
-    recordID: Types.ObjectId,
     /** Unique ID of the vehicle */
     vehicleID: Types.ObjectId,
+    /** Unique ID of the attachment */
+    attachmentID:  Types.ObjectId,
+    /** Mileage at the time of expense */
+    odometer?: number,
     /** Purchase date */
-    dateOfRecord: string,
+    dateOfRecord: Date | string,
     /** Store or service center */
     vendor: string,
     /** Tracked by service */
@@ -61,21 +98,19 @@ export type IExpenseRecord = {
     /** Credit, cash, etc */
     paymentMethod?: string,
     /** Optional for tracking coverage */
-    warrantyInfo?: string
-}
+    warrantyInfo?: string,
+} & MongoEntry
 
 /** Reminders & Scheduling */
 export type IReminder = {
-    /** Unique ID of the vehicle */
-    taskID: Types.ObjectId,
     /** e.g., "Oil Change Reminder" */
     taskName: string,
     /** Unique ID of the vehicle */
     vehicleID: Types.ObjectId,
     /** Trigger for next service (date) */
-    dueDate?: string,
+    dueDate?: Date | string,
     /** Trigger for next service (date) */
     dueMileage?: number,
     /** Pending / Completed / Overdue */
     status: string
-}
+} & MongoEntry;

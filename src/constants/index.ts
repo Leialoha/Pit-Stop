@@ -1,5 +1,7 @@
 import { format as formatURL } from 'url';
 
+// SYSTEM ENV
+
 const { 
     DB_PASSWORD: db_password,
     DB_USERNAME: db_username,
@@ -18,7 +20,6 @@ export const DATABASE_URL = formatURL({ protocol: 'http', auth: databaseAuth, ho
     .replace(/^http/i, db_protocol);
 
 export const DATABASE_NAME = process.env.DB_NAME;
-
 
 export const HOST = host_ip || '0.0.0.0';
 export const PORT = parseInt(host_port) || 3000;

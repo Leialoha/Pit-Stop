@@ -8,16 +8,28 @@
   "license": "All Rights Reserved",
   "private": true,
   "dependencies": {
+    "cookie-session": "^2.1.1",
+    "email-validator": "^2.0.4",
     "express": "^5.1.0",
     "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "keygrip": "^1.1.0",
     "mongoose": "^8.19.2",
+    "otplib": "^12.0.1",
+    "phone": "^3.1.67",
+    "statuses": "^2.0.2",
     "url": "^0.11.4",
     "uuid": "^13.0.0",
     "uuid-validate": "^0.0.3"
   },
   "devDependencies": {
+    "@types/cookie-session": "^2.0.49",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/keygrip": "^1.0.6",
     "@types/node": "^24.9.1",
+    "@types/statuses": "^2.0.6",
     "@types/uuid": "^11.0.0",
     "@types/uuid-validate": "^0.0.3",
     "dotenv": "^17.2.3",
@@ -27,6 +39,6 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/server.js"
   }
 }

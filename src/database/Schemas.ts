@@ -1,69 +1,108 @@
 import { model, Schema, SchemaOptions } from 'mongoose';
-import { IVehicle, IReminder, IExpenseRecord, IServiceRecord } from './interfaces';
+import { IUser, IGroup, IVehicle, IReminder, IExpenseRecord, IServiceRecord, IAttachment, MongoEntry } from './interfaces';
+import { validateEmail, validatePhoneNumber } from '../utils/validators';
+import * as LANG from '../constants/lang';
+
+const required = true;
+const unique = true;
+const sparse = true;
+
+const AttachmentSchema = new Schema<IAttachment>({
+    uploader: { type: Schema.Types.ObjectId, ref: 'groups', required },
+    fileUrl: { type: String, required },
+    fileName: { type: String, required },
+    uploadedAt: { type: Date, default: new Date(), required },
+}, hideOptions());
+
+const UserSchema = new Schema<IUser>({
+    phone: { type: String, required, unique },
+    name: { type: String, required },
+    email: { type: String, required },
+}, hideOptions());
+
+UserSchema.pre('save', async function (next) {
+    if (this.isModified('phone')) {
+        let { isValid, phone } = validatePhoneNumber(this.phone);
+        if (!isValid) return next(new Error(LANG.INVALID_PHONE_NUMBER));
+        else this.phone = phone;
+    }
+
+    if (this.isModified('email')) {
+        let { isValid, email } = validateEmail(this.email);
+        if (!isValid) return next(new Error(LANG.INVALID_PHONE_NUMBER));
+        else this.email = email;
+    }
+    
+    next();
+});
+
+const GroupSchema = new Schema<IGroup>({
+    vehicles: [{ type: Schema.Types.ObjectId, ref: 'vehicles' }],
+    users: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    name: { type: String, required },
+    description: { type: String },
+}, hideOptions());
 
 const VehicleSchema = new Schema<IVehicle>({
-    vehicleID: { type: Schema.Types.ObjectId, unique: true, required: true },
-    name: { type: String, required: false },
-    make: { type: String, required: true },
-    model: { type: String, required: true },
-    year: { type: String, required: true },
-    vin: { type: String, required: false },
-    licensePlate: { type: String, required: false },
+    name: { type: String },
+    make: { type: String, required },
+    model: { type: String, required },
+    year: { type: String, required },
+    vin: { type: String, unique, sparse },
+    licensePlate: { type: String, unique, sparse },
 }, hideOptions());
 
 
 const ReminderSchema = new Schema<IReminder>({
-    taskID: { type: Schema.Types.ObjectId, required: true, unique: true },
-    vehicleID: { type: Schema.Types.ObjectId, required: true, ref: 'vehicles' },
-    taskName: { type: String, required: true },
-    dueDate: { type: String, required: false },
-    dueMileage: { type: Number, required: false },
-    status: { type: String, required: true },
+    vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
+    taskName: { type: String, required },
+    status: { type: String, required },
+    dueDate: { type: String },
+    dueMileage: { type: Number },
 }, hideOptions());
 
 const ExpenseRecordSchema = new Schema<IExpenseRecord>({
-    recordID: { type: Schema.Types.ObjectId, required: true, unique: true },
-    vehicleID: { type: Schema.Types.ObjectId, required: true, ref: 'vehicles' },
-    dateOfRecord: { type: String, required: true },
-    vendor: { type: String, required: true },
-    wasService: { type: Boolean, required: true },
-    category: { type: String, required: true },
-    description: { type: String, required: true },
-    totalCost: { type: Number, required: true },
-    paymentMethod: { type: String, required: false },
-    warrantyInfo: { type: String, required: false }
+    vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
+    odometer: { type: Number },
+    dateOfRecord: { type: Date, default: new Date(), required },
+    vendor: { type: String, required },
+    wasService: { type: Boolean, required },
+    category: { type: String, required },
+    description: { type: String, required },
+    totalCost: { type: Number, required },
+    paymentMethod: { type: String },
+    warrantyInfo: { type: String }
 }, hideOptions());
 
 const ServiceRecordSchema = new Schema<IServiceRecord>({
-    serviceID: { type: Schema.Types.ObjectId, required: true, unique: true },
-    vehicleID: { type: Schema.Types.ObjectId, required: true, ref: 'vehicles' },
-    recordID: { type: Schema.Types.ObjectId, required: false, ref: 'expenses' },
-    odometerAtService: { type: String, required: false },
-    serviceType: { type: String, required: true },
-    nextDueDate: { type: String, required: false },
-    nextDueMileage: { type: Number, required: false },
-    laborCost: { type: Number, required: false },
-    partsCost: { type: Number, required: false }
+    vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
+    recordID: { type: Schema.Types.ObjectId, ref: 'expenses' },
+    odometer: { type: Number, required },
+    serviceType: { type: String, required },
+    nextDueDate: { type: Date },
+    nextDueMileage: { type: Number },
+    laborCost: { type: Number },
+    partsCost: { type: Number }
 }, hideOptions());
 
-
+export const AttachmentModel = model<IAttachment>('attachments', AttachmentSchema);
+export const UserModel = model<IUser>('users', UserSchema);
+export const GroupModel = model<IGroup>('groups', GroupSchema);
 export const VehicleModel = model<IVehicle>('vehicle', VehicleSchema);
 export const ReminderModel = model<IReminder>('reminders', ReminderSchema);
 export const ExpenseRecordModel = model<IExpenseRecord>('expenses', ExpenseRecordSchema);
 export const ServiceRecordModel = model<IServiceRecord>('services', ServiceRecordSchema);
 
 
-function hideOptions<T>(): SchemaOptions<T> {
+function hideOptions<T>(): SchemaOptions<T & MongoEntry> {
     return {
         toJSON: {    
             transform(_, ret) {
-                delete ret._id;
                 delete ret.__v;
             }
         },
         toObject: {
             transform(_, ret) {
-                delete ret._id;
                 delete ret.__v;
             }
         },

@@ -26,21 +26,21 @@
 - [x] **Next Due Date / Mileage** - For scheduling reminders
 - [x] **Labor Cost**  - Cost of the work
 - [x] **Parts Cost**  - Cost of materials used
-- [x] **Labor Cost** - Cost of the work
-- [x] **Parts Cost** - Cost of materials used
-- [ ] **Attachments / Receipt Image** - For digital copies of invoices
+- [x] **Attachments / Receipt Image** - For digital copies of invoices
 
 ---
 
 ### ⛽ **Fuel / Running Costs (optional but useful)**
+> See [Receipts / Expenses](#-receipts--expenses)
 
-- [ ] **Date** - When you refueled
-- [ ] **Odometer** - Mileage at fill-up
-- [ ] **Fuel Volume (gal/L)** - Amount filled
-- [ ] **Cost per Unit** - Cost per gallon/liter
-- [ ] **Total Cost** - Total fuel cost
-- [ ] **Fuel Type** - Regular, Premium, Diesel, etc
-- [ ] **Station / Location** - Where you filled up
+- [x] **Date** - When you refueled (required)
+- [x] **Odometer** - Mileage at fill-up
+- [x] **Fuel Volume (gal/L)** - Amount filled
+- [x] **Cost per Unit** - Cost per gallon/liter
+- [x] **Total Cost** - Total fuel cost (required)
+- [x] **Fuel Type** - Regular, Premium, Diesel, etc
+- [x] **Station / Location** - Where you filled up
+- [x] **Attachment** - Image or PDF of the receipt
 
 ---
 
@@ -56,7 +56,8 @@
 - [x] **Total Cost** - Total expense (Required)
 - [x] **Payment Method** - Credit, cash, etc
 - [x] **Warranty Info / Return Date** - Optional for tracking coverage
-- [ ] **Attachment** - Image or PDF of the receipt
+- [x] **Quantity** - Number of items bought
+- [x] **Attachment** - Image or PDF of the receipt
 
 ---
 
