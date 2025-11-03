@@ -1,5 +1,5 @@
 import { model, Schema, SchemaOptions } from 'mongoose';
-import { IUser, IGroup, IVehicle, IReminder, IExpenseRecord, IServiceRecord, IAttachment, MongoEntry } from './interfaces';
+import { IUser, IGroup, IVehicle, IReminder, IExpenseRecord, IServiceRecord, IAttachment, MongoEntry, GroupUsers } from './interfaces';
 import { validateEmail, validatePhoneNumber } from '../utils/validators';
 import * as LANG from '../constants/lang';
 
@@ -36,9 +36,28 @@ UserSchema.pre('save', async function (next) {
     next();
 });
 
+const GroupPermissionSchema = new Schema<GroupUsers>({
+    userId: { type: Schema.Types.ObjectId, refPath: 'users' },
+    phone: { type: String },
+    permissions: { type: Number }
+}, { _id: false });
+
+GroupPermissionSchema.pre('save', async function (next) {
+    if (!(this.userId || this.phone))
+        return next(new Error(LANG.INVALID_USER_REFERENCE));
+
+    if (this.isModified('phone') && this.phone) {
+        let { isValid, phone } = validatePhoneNumber(this.phone);
+        if (!isValid) return next(new Error(LANG.INVALID_PHONE_NUMBER));
+        else this.phone = phone;
+    }
+    
+    next();
+});
+
 const GroupSchema = new Schema<IGroup>({
     vehicles: [{ type: Schema.Types.ObjectId, ref: 'vehicles' }],
-    users: [{ type: Schema.Types.ObjectId, ref: 'users' }],
+    users: [{ type: GroupPermissionSchema }],
     name: { type: String, required },
     description: { type: String },
 }, hideOptions());

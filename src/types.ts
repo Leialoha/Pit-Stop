@@ -75,3 +75,12 @@ export enum HttpStatus {
     NOT_EXTENDED = 510,
     NETWORK_AUTHENTICATION_REQUIRED = 511,
 }
+
+export type Some<T> = T | T[];
+
+export type RequireOne<T, Keys extends keyof T = keyof T> = {
+    [K in Keys]: Partial<Pick<T, Exclude<Keys, K>>>
+        & Required<Pick<T, K>>
+        & Omit<T, Keys>
+}[Keys];
+

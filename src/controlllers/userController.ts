@@ -2,16 +2,12 @@ import { Request, Response } from 'express';
 import { IUser, UserModel } from '../database';
 import { validateEmail, validatePhoneNumber } from '../utils/validators';
 import { sendClientError, sendStatus, systemTime } from '../utils';
-import { BinaryLike, createHash, randomBytes, randomInt } from 'crypto';
-import * as jwt from '../utils/jwt';
+import { BinaryLike, createHash, randomInt } from 'crypto';
 
 import { OTP_TIMEOUT } from '../constants/system';
 import * as LANG from '../constants/lang';
-import { AddressInfo } from 'net';
-
-type Partial<T> = {
-  [P in keyof T]?: T[P];
-};
+import { generateClientSession } from '../utils/session';
+import { Types } from 'mongoose';
 
 type TempUser = Partial<IUser> & {
     hash: string,
@@ -28,14 +24,23 @@ const tempUserOtps: { [key: string]: TempUserOTP; } = {}
 
 /**
  * @desc    Get a single user by phone number
- * @route   GET /api/users/:number
+ * @route   GET /api/users/:id
  */
-export async function hasUserByNumber(req: Request, res: Response) {
-    const { isValid, phone } = validatePhoneNumber(req.query.number as string);
-    if (!isValid) return sendClientError(res, LANG.INVALID_PHONE_NUMBER);
+export async function getUserById(req: Request, res: Response) {
+    // This is an internal header (look at utils/validators.ts)
+    const phone = req.headers['X-Phone'] as string;
 
-    const exists = await UserModel.exists({ phone }) == null;
-    sendStatus(res, exists ? 200 : 404);
+    const _id = Types.ObjectId.createFromHexString(req.params.id);
+    const lookup: IUser = await UserModel.findOne({ _id });
+
+    if (res) {
+        if (phone != lookup.phone) {
+            lookup.phone = lookup.phone.replace(/\d(?=\d{4})/gi, '*');
+            lookup.email = lookup.email.replace(/(?<!^|[@])\w+(?![^.]*$|[@])/gi, '***');
+        }
+
+        res.json(lookup);
+    } else sendStatus(res, 404);
 }
 
 /**
@@ -99,14 +104,13 @@ export async function validateLogin(req: Request, res: Response) {
 
     if (tempUsers[hash] != null) {
         let user = await UserModel.create({ name, phone, email })
-            .catch((err) => sendClientError(res, err?.message || `${err}`));
+            .catch((err) => sendClientError(res, err?.message || `${err}`, 500));
+
+        delete tempUsers[hash];
         if (user == null) return;
     }
 
-    const session = generateSessionId(req);
-    const token = jwt.sign({ phone, session });
-    req.session.authorization = `Bearer ${token}`
-
+    generateClientSession(req, phone);
     sendStatus(res, 200);
 }
 
@@ -114,13 +118,6 @@ export async function validateLogin(req: Request, res: Response) {
 
 
 
-function generateSessionId(req: Request) {
-    const { family, address } = req.socket.address() as Partial<AddressInfo>;
-
-    const randomized = randomBytes(16).toString('hex');
-    const localized = encodeBase64({ family, address })
-    return `${randomized}.${localized}`;
-}
 
 function getOtp(hash: string) {
     const data = tempUserOtps[hash];
@@ -134,7 +131,3 @@ function quickHash(data: BinaryLike) {
         .digest('hex');
 }
 
-function encodeBase64(data: string | object) {
-    const input = (typeof data == 'object') ? JSON.stringify(data) : data;
-    return Buffer.from(input).toString('base64');
-}

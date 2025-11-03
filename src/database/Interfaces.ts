@@ -1,9 +1,10 @@
 import { Types } from "mongoose"
+import { RequireOne } from "../types";
 
 export type MongoEntry = {
     /** Unique ID of the entry */
     _id: Types.ObjectId,
-}
+};
 
 /** Attachment Information */
 export type IAttachment = {
@@ -15,7 +16,7 @@ export type IAttachment = {
     fileName: string,
     /** Date of the attachment upload */
     uploadedAt: Date | string,
-} & MongoEntry
+} & MongoEntry;
 
 /** User Information */
 export type IUser = {
@@ -25,7 +26,7 @@ export type IUser = {
     phone: string,
     /** Recovery Email */
     email: string
-} & MongoEntry
+} & MongoEntry;
 
 /** Group Information */
 export type IGroup = {
@@ -36,8 +37,8 @@ export type IGroup = {
     /** Unique IDs of the vehicles */
     vehicles: Types.ObjectId[],
     /** Unique IDs of the users */
-    users: Types.ObjectId[],
-} & MongoEntry
+    users: GroupUsers[],
+} & MongoEntry;
 
 /** Vehicle Information */
 export type IVehicle = {
@@ -53,7 +54,7 @@ export type IVehicle = {
     vin?: string,
     /** Optional for quick reference */
     licensePlate?: string
-} & MongoEntry
+} & MongoEntry;
 
 /** Maintenance / Service Records */
 export type IServiceRecord = {
@@ -73,7 +74,7 @@ export type IServiceRecord = {
     laborCost?: number,
     /** Cost of materials used */
     partsCost?: number,
-} & MongoEntry
+} & MongoEntry;
 
 /** Receipts / Expenses */
 export type IExpenseRecord = {
@@ -99,7 +100,7 @@ export type IExpenseRecord = {
     paymentMethod?: string,
     /** Optional for tracking coverage */
     warrantyInfo?: string,
-} & MongoEntry
+} & MongoEntry;
 
 /** Reminders & Scheduling */
 export type IReminder = {
@@ -114,3 +115,20 @@ export type IReminder = {
     /** Pending / Completed / Overdue */
     status: string
 } & MongoEntry;
+
+// Interface Values
+export type UserReference = RequireOne<{
+    userId: Types.ObjectId
+    phone: string,
+}>;
+
+export type GroupUsers = UserReference & {
+    permissions: number
+};
+
+
+// Query Lookups
+export type Identifiers = {
+    ids: Types.ObjectId[];
+}
+
