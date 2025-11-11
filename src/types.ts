@@ -76,6 +76,68 @@ export enum HttpStatus {
     NETWORK_AUTHENTICATION_REQUIRED = 511,
 }
 
+class Permission {
+    private value: number;
+
+    constructor(...permissions: number[]) {
+        for (const permission of permissions)
+            this.value |= permission;
+
+        this.value &= Permission.ALL;
+    }
+
+    get isAdmin() {
+        return (this.value & Permission.ADMINISTRATOR) == Permission.ADMINISTRATOR;
+    }
+
+    any(permission: number | Permission, checkAdmin: boolean = true) {
+        return (checkAdmin && this.isAdmin) || this.and(permission).equals(0);
+    }
+
+    has(permission: number | Permission, checkAdmin: boolean = true) {
+        return (checkAdmin && this.isAdmin) || this.and(permission).equals(permission);
+    }
+
+    private static valueOf(permission: number | Permission) {
+        return (permission instanceof Permission) ? permission.value : permission;
+    }
+
+    or(permission: number | Permission) {
+        return new Permission(this.value | Permission.valueOf(permission));
+    }
+
+    and(permission: number | Permission) {
+        return new Permission(this.value & Permission.valueOf(permission));
+    }
+
+    equals(permission: number | Permission) {
+        return this.value = Permission.valueOf(permission);
+    }
+
+    toJSON() {
+        return this.value;
+    }
+
+    static readonly ADMINISTRATOR      = 1;
+    static readonly MANAGE_USERS       = 2;
+    static readonly MANAGE_VEHICLES    = 4;
+    static readonly VIEW_RECORDS       = 8;
+    static readonly CREATE_RECORDS     = 16;
+    static readonly DELETE_RECORDS     = 32;
+    static readonly DOWNLOAD_RECORDS   = 64;
+    static readonly VIEW_REMINDERS     = 128;
+    static readonly MANAGE_REMINDERS   = 256;
+    static readonly VIEW_ATTACHMENTS   = 512;
+    static readonly UPLOAD_ATTACHMENTS = 1024;
+    static readonly DELETE_ATTACHMENTS = 2048;
+
+    static readonly ALL                = 4095;
+}
+
+export const Permissions = new Permission();
+
+export type Optional<T> = T | undefined;
+
 export type Some<T> = T | T[];
 
 export type RequireOne<T, Keys extends keyof T = keyof T> = {

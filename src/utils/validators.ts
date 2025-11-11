@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from 'express';
 import { phone as phoneValidate } from 'phone';
 import { sendStatus } from '.';
 import { fetchClientSession } from './session';
+import { quickDecode } from '@cardog/corgi';
 
 export type PhoneValidation = {
     isValid: boolean,
@@ -14,6 +15,13 @@ export type EmailValidation = {
     email: string
 }
 
+export type VinValidation = {
+    isValid: boolean,
+    make: string
+    model: string
+    year: string
+}
+
 // TODO: Allow all regions, future implementation
 export function validatePhoneNumber(phoneStr: string) : PhoneValidation {
     const { isValid, phoneNumber: phone } = phoneValidate(phoneStr, { country: 'USA' });
@@ -23,6 +31,21 @@ export function validatePhoneNumber(phoneStr: string) : PhoneValidation {
 export function validateEmail(emailStr: string) : EmailValidation {
     const isValid = emailValidate(emailStr);
     return { isValid, email: isValid ? emailStr : null };
+}
+
+export async function validateVIN(vin: string) : Promise<VinValidation> {
+    const regex = /^[A-HJ-NPR-Z0-9]{17}$/;
+    const isValid = regex.test(vin.toUpperCase());
+    if (!isValid) return { isValid: false, make: null, model: null, year: null };
+
+    const result = await quickDecode(vin);
+    if (!result || !result.valid) return { isValid: false, make: null, model: null, year: null };
+
+    const { make, model: _model, year: _year, trim } = result.components.vehicle;
+    const model = [_model, trim].filter(Boolean).join(' ');
+    const year = _year.toString();
+
+    return { isValid: true, year, make, model};
 }
 
 export function validateAuthorization(req: Request, res: Response, next: NextFunction) {

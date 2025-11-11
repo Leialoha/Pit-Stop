@@ -7,7 +7,7 @@ import { BinaryLike, createHash, randomInt } from 'crypto';
 import { OTP_TIMEOUT } from '../constants/system';
 import * as LANG from '../constants/lang';
 import { generateClientSession } from '../utils/session';
-import { Types } from 'mongoose';
+import { lookupUser } from '../database/lookup';
 
 type TempUser = Partial<IUser> & {
     hash: string,
@@ -24,23 +24,41 @@ const tempUserOtps: { [key: string]: TempUserOTP; } = {}
 
 /**
  * @desc    Get a single user by phone number
- * @route   GET /api/users/:id
+ * @route   GET /api/users/lookup
  */
-export async function getUserById(req: Request, res: Response) {
+export async function getUser(req: Request, res: Response) {
     // This is an internal header (look at utils/validators.ts)
-    const phone = req.headers['X-Phone'] as string;
+    const selfPhone = req.headers['X-Phone'] as string;
+    const { phone: phoneStr, id: idStr } = req.query as { [key: string]: string };
 
-    const _id = Types.ObjectId.createFromHexString(req.params.id);
-    const lookup: IUser = await UserModel.findOne({ _id });
+    const id = /^[\da-f]{24}$/i.test(idStr || '') ? idStr : null;
+    const phone = validatePhoneNumber(phoneStr as string).isValid ? phoneStr : null;
+    const lookupBy = (phone ?? id)?.trim();
 
-    if (res) {
-        if (phone != lookup.phone) {
-            lookup.phone = lookup.phone.replace(/\d(?=\d{4})/gi, '*');
-            lookup.email = lookup.email.replace(/(?<!^|[@])\w+(?![^.]*$|[@])/gi, '***');
-        }
+    // If no valid lookup provided, return 400
+    if (!lookupBy) return sendClientError(res, LANG.INVALID_USER_REFERENCE);
 
-        res.json(lookup);
-    } else sendStatus(res, 404);
+    const lookup = await new Promise<IUser>(async (resolve) => {
+        const result = await lookupUser(lookupBy);
+        if (!result || result.phone == selfPhone) return resolve(result);
+
+        result.phone = result.phone.replace(/\d(?=\d{4})/gi, '*');
+        result.email = result.email.replace(/(?<!^|[@])\w+(?![^.]*$|[@])/gi, '***');
+        resolve(result);
+    });
+
+    // If not found, return 404
+    // If lookup is self, return full user object
+    // If lookup is by phone, return 200 OK with no body
+    // If lookup is by ID, return the masked user object
+
+    // We want to avoid leaking personal info via phone lookups
+    // While IDs are less accessible, we can return full info there
+
+    if (!lookup) return sendStatus(res, 404);
+    if (lookup.phone == selfPhone) return res.json(lookup);
+    if (lookupBy == phone) return sendStatus(res, 200);
+    res.json(lookup);
 }
 
 /**
@@ -65,7 +83,7 @@ export async function requestLogin(req: Request, res: Response) {
     }
 
     if (tempUsers[hash] == null) {
-        partialUser = await UserModel.findOne({ phone })
+        partialUser = await lookupUser( phone )
             .then(user => (user == null ? { phone } : user) as IUser)
             .then(user => ({ ...user, hash, exists: user._id != null } as TempUser))
 

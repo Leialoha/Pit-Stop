@@ -56,13 +56,13 @@ GroupPermissionSchema.pre('save', async function (next) {
 });
 
 const GroupSchema = new Schema<IGroup>({
-    vehicles: [{ type: Schema.Types.ObjectId, ref: 'vehicles' }],
     users: [{ type: GroupPermissionSchema }],
     name: { type: String, required },
     description: { type: String },
 }, hideOptions());
 
 const VehicleSchema = new Schema<IVehicle>({
+    groupID: { type: Schema.Types.ObjectId, ref: 'groups', required }, 
     name: { type: String },
     make: { type: String, required },
     model: { type: String, required },

@@ -34,14 +34,14 @@ export type IGroup = {
     name: string,
     /** Details about group */
     description?: string,
-    /** Unique IDs of the vehicles */
-    vehicles: Types.ObjectId[],
     /** Unique IDs of the users */
     users: GroupUsers[],
 } & MongoEntry;
 
 /** Vehicle Information */
 export type IVehicle = {
+    /** Unique ID of the group */
+    groupID: Types.ObjectId,
     /** Display name */
     name?: string,
     /** Manufacturer */

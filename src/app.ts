@@ -4,6 +4,7 @@ import { cookieSession } from './utils/session';
 
 import userRouter from './routes/users';
 import groupRouter from './routes/groups';
+import vehicleRouter from './routes/vehicles';
 import { clientHeaders } from './utils/validators';
 
 const app = express();
@@ -20,7 +21,7 @@ app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
 const apiRouter = Router();
 apiRouter.use('/users', userRouter);
 apiRouter.use('/groups', groupRouter);
-
+apiRouter.use('/vehicles', vehicleRouter);
 
 app.use('/api', apiRouter);
 

@@ -27,8 +27,8 @@ const requestPhoneLimiter = rateLimit({
     },
 });
 
-router.route('/:id')
-    .get(controller.getUserById)
+router.route('/lookup')
+    .get(controller.getUser);
 
 router.route('/:number/login')
     .all(requestGlobalLimiter)
