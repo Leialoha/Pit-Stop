@@ -1,4 +1,5 @@
 import { Types } from "mongoose"
+
 import { RequireOne } from "../types";
 
 export type MongoEntry = {

@@ -1,10 +1,10 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
-import { ResponseStatusException } from './types';
-import { cookieSession } from './utils/session';
 
 import userRouter from './routes/users';
 import groupRouter from './routes/groups';
 import vehicleRouter from './routes/vehicles';
+import { ResponseStatusException } from './types';
+import { cookieSession } from './utils/session';
 import { clientHeaders } from './utils/validators';
 
 const app = express();

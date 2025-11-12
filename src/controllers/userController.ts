@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
-import { IUser, UserModel } from '../database';
-import { validateContents, validateEmail, validateName, validatePhoneNumber } from '../utils/validators';
-import { sendClientError, sendStatus, systemTime } from '../utils';
 import { BinaryLike, createHash, randomInt } from 'crypto';
+import { Request, Response } from 'express';
 
-import { OTP_TIMEOUT } from '../constants/system';
 import * as LANG from '../constants/lang';
-import { generateClientSession } from '../utils/session';
+import { OTP_TIMEOUT } from '../constants/system';
+import { IUser, UserModel } from '../database';
 import { lookupUser } from '../database/lookup';
+import { sendClientError, sendStatus, systemTime } from '../utils';
+import { generateClientSession } from '../utils/session';
+import { validateContents, validateEmail, validateName, validatePhoneNumber } from '../utils/validators';
+
 
 type TempUser = Partial<IUser> & {
     hash: string,

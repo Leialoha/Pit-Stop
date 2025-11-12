@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+
 import { DATABASE_URL, DATABASE_NAME } from '../constants';
 
 export * from './interfaces';

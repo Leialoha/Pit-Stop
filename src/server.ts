@@ -1,7 +1,7 @@
-import { HOST, PORT } from './constants';
-import { initalize as initalizeJWT } from './utils/jwt';
-import { connectDB } from './database';
 import app from './app';
+import { HOST, PORT } from './constants';
+import { connectDB } from './database';
+import { initalize as initalizeJWT } from './utils/jwt';
 
 connectDB();
 initalizeJWT();

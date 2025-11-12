@@ -1,9 +1,10 @@
 import { validate as emailValidate } from 'email-validator';
 import { NextFunction, Request, Response } from 'express';
 import { phone as phoneValidate } from 'phone';
+import { quickDecode } from '@cardog/corgi';
+
 import { sendStatus } from '.';
 import { fetchClientSession } from './session';
-import { quickDecode } from '@cardog/corgi';
 
 export type Nevered<T> = {
     [K in keyof T]?: never;

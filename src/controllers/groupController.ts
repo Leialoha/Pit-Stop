@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
+
+import * as LANG from "../constants/lang";
 import { GroupModel, GroupUsers, IGroup } from "../database";
+import { fillGroups, findUsers, lookupGroupById, lookupGroups } from "../database/lookup";
 import { randomName, sendClientError, sendStatus } from "../utils";
 import { validateContents, validatePhoneNumber } from "../utils/validators";
-import { fillGroups, findUsers, lookupGroupById, lookupGroups } from "../database/lookup";
-import * as LANG from "../constants/lang";
 
 /**
  * @desc    Get the list of the user's groups

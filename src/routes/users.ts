@@ -1,6 +1,7 @@
 import { Router } from "express";
-import * as controller from "../controlllers/userController";
 import rateLimit from "express-rate-limit";
+
+import * as controller from "../controllers/userController";
 
 const router = Router();
 

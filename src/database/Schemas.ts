@@ -1,7 +1,8 @@
 import { model, Schema, SchemaOptions } from 'mongoose';
+
 import { IUser, IGroup, IVehicle, IReminder, IExpenseRecord, IServiceRecord, IAttachment, MongoEntry, GroupUsers } from './interfaces';
-import { validateEmail, validatePhoneNumber } from '../utils/validators';
 import * as LANG from '../constants/lang';
+import { validateEmail, validatePhoneNumber } from '../utils/validators';
 
 const required = true;
 const unique = true;

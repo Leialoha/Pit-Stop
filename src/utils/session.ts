@@ -1,12 +1,13 @@
-import keygrip from "keygrip";
 import cookie from "cookie-session";
 import { randomBytes, randomInt } from "crypto";
-import { COOKIE_SESSION_TIMEOUT as maxAge } from "../constants/system";
 import { Request } from "express";
-import { AddressInfo } from "net";
-import { decodeBase64, encodeBase64 } from ".";
-import * as jwt from './jwt';
 import { JwtPayload } from "jsonwebtoken";
+import keygrip from "keygrip";
+import { AddressInfo } from "net";
+
+import { decodeBase64, encodeBase64 } from ".";
+import { COOKIE_SESSION_TIMEOUT as maxAge } from "../constants/system";
+import * as jwt from './jwt';
 
 const length = randomInt(5, 10);
 const privateKeys = new Array(length).fill(null)

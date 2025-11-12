@@ -1,5 +1,6 @@
 import { Router } from "express";
-import * as controller from "../controlllers/groupController";
+
+import * as controller from "../controllers/groupController";
 import { validateAuthorization } from "../utils/validators";
 
 const router = Router();

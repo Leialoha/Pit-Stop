@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
-import { IVehicle, VehicleModel } from "../database";
-import { sendClientError, sendStatus } from "../utils";
-import { lookupGroupById, lookupVehicleById } from "../database/lookup";
-import { validateContents, validateVIN } from "../utils/validators";
+
 import * as LANG from "../constants/lang";
+import { IVehicle, VehicleModel } from "../database";
+import { lookupGroupById, lookupVehicleById } from "../database/lookup";
+import { sendClientError, sendStatus } from "../utils";
+import { validateContents, validateVIN } from "../utils/validators";
 
 /**
  * @desc    Create a vehicle

@@ -1,7 +1,8 @@
 import { Types } from "mongoose";
-import { validatePhoneNumber } from "../utils/validators";
+
 import { IGroup, IUser, IVehicle, UserReference } from "./interfaces";
 import { GroupModel, UserModel } from "./schemas";
+import { validatePhoneNumber } from "../utils/validators";
 
 function filterExistingUsersByPhone(phones: string[]) {
     return { $match: { phone: { $in: phones } } };

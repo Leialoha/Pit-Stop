@@ -1,5 +1,6 @@
 import { Router } from "express";
-import * as controller from "../controlllers/vehicleController";
+
+import * as controller from "../controllers/vehicleController";
 import { validateAuthorization } from "../utils/validators";
 
 const router = Router();
