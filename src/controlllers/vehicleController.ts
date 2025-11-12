@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 import { IVehicle, VehicleModel } from "../database";
-import { sendStatus } from "../utils";
+import { sendClientError, sendStatus } from "../utils";
 import { lookupGroupById, lookupVehicleById } from "../database/lookup";
-import { validateVIN } from "../utils/validators";
-
+import { validateContents, validateVIN } from "../utils/validators";
+import * as LANG from "../constants/lang";
 
 /**
  * @desc    Create a vehicle
@@ -14,7 +14,10 @@ export async function createVehicle(req: Request, res: Response) {
     // This is an internal header (look at utils/validators.ts)
     const phone = req.headers['X-Phone'] as string;
 
-    let { name, make, model, year, vin, plate: licensePlate, group } = req.body;
+    const validKeys = ['name', 'make', 'model', 'year', 'vin', 'plate', 'group'];
+    let { isValid, contents, unallowedKeys } = validateContents(req.body, validKeys);
+    if (!isValid) return sendClientError(res, LANG.INVALID_PARAMETERS_EXTRA_KEYS(unallowedKeys));
+    const { name, make, model, year, vin, plate: licensePlate, group } = contents;
 
     const hasAll = make && model && year && group;
     if (!hasAll) return sendStatus(res, 400);
@@ -57,5 +60,3 @@ export async function getVINDetails(req: Request, res: Response) {
 
     return res.json({ make, model, year });
 }
-
-// $year $make $model $trim

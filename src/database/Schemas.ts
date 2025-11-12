@@ -6,17 +6,20 @@ import * as LANG from '../constants/lang';
 const required = true;
 const unique = true;
 const sparse = true;
+const trim = true;
+const minlength = 5;
+const maxlength = 50;
 
 const AttachmentSchema = new Schema<IAttachment>({
     uploader: { type: Schema.Types.ObjectId, ref: 'groups', required },
     fileUrl: { type: String, required },
-    fileName: { type: String, required },
+    fileName: { type: String, required, trim, minlength, maxlength },
     uploadedAt: { type: Date, default: new Date(), required },
 }, hideOptions());
 
 const UserSchema = new Schema<IUser>({
     phone: { type: String, required, unique },
-    name: { type: String, required },
+    name: { type: String, required, trim, minlength, maxlength },
     email: { type: String, required },
 }, hideOptions());
 
@@ -57,13 +60,13 @@ GroupPermissionSchema.pre('save', async function (next) {
 
 const GroupSchema = new Schema<IGroup>({
     users: [{ type: GroupPermissionSchema }],
-    name: { type: String, required },
+    name: { type: String, required, trim, minlength: 5, maxlength: 50 },
     description: { type: String },
 }, hideOptions());
 
 const VehicleSchema = new Schema<IVehicle>({
     groupID: { type: Schema.Types.ObjectId, ref: 'groups', required }, 
-    name: { type: String },
+    name: { type: String, trim, minlength, maxlength },
     make: { type: String, required },
     model: { type: String, required },
     year: { type: String, required },
@@ -74,9 +77,9 @@ const VehicleSchema = new Schema<IVehicle>({
 
 const ReminderSchema = new Schema<IReminder>({
     vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
-    taskName: { type: String, required },
+    taskName: { type: String, required, trim, minlength, maxlength },
     status: { type: String, required },
-    dueDate: { type: String },
+    dueDate: { type: Date },
     dueMileage: { type: Number },
 }, hideOptions());
 
@@ -84,13 +87,13 @@ const ExpenseRecordSchema = new Schema<IExpenseRecord>({
     vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
     odometer: { type: Number },
     dateOfRecord: { type: Date, default: new Date(), required },
-    vendor: { type: String, required },
+    vendor: { type: String, required, trim, minlength, maxlength },
     wasService: { type: Boolean, required },
-    category: { type: String, required },
-    description: { type: String, required },
+    category: { type: String, required, trim, minlength, maxlength },
+    description: { type: String, required, trim, minlength, maxlength },
     totalCost: { type: Number, required },
-    paymentMethod: { type: String },
-    warrantyInfo: { type: String }
+    paymentMethod: { type: String, trim, minlength, maxlength },
+    warrantyInfo: { type: String, trim, minlength, maxlength }
 }, hideOptions());
 
 const ServiceRecordSchema = new Schema<IServiceRecord>({

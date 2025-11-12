@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import { GroupModel, GroupUsers, IGroup } from "../database";
-import { randomName, sendStatus } from "../utils";
-import { validatePhoneNumber } from "../utils/validators";
+import { randomName, sendClientError, sendStatus } from "../utils";
+import { validateContents, validatePhoneNumber } from "../utils/validators";
 import { fillGroups, findUsers, lookupGroupById, lookupGroups } from "../database/lookup";
-
+import * as LANG from "../constants/lang";
 
 /**
  * @desc    Get the list of the user's groups
@@ -23,8 +23,13 @@ export async function getGroups(req: Request, res: Response) {
  * @route   POST /api/groups
  */
 export async function createGroup(req: Request, res: Response) {
-    const name = req.body.name || randomName();
-    const phones = validatePhones(req.body.phones || []);
+
+    const { isValid, contents, unallowedKeys } = validateContents(req.body, ['name', 'phones']);
+    if (!isValid) return sendClientError(res, LANG.INVALID_PARAMETERS_EXTRA_KEYS(unallowedKeys));
+    const { name: _name, phones: _phones } = contents;
+
+    const name = _name ?? randomName();
+    const phones = validatePhones(_phones ?? []);
 
     // This is an internal header (look at utils/validators.ts)
     phones.push(req.headers['X-Phone'] as string);
@@ -50,9 +55,7 @@ export async function getGroup(req: Request, res: Response) {
     else sendStatus(res, 404);
 }
 
-
-
-
+// Utility functions
 
 function validatePhones(phone: string[]) {
     return phone.map(validatePhoneNumber)

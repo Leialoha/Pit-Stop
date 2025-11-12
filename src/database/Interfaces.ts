@@ -36,6 +36,8 @@ export type IGroup = {
     description?: string,
     /** Unique IDs of the users */
     users: GroupUsers[],
+    /** Unique entries of group vehicles */
+    vehicles?: IVehicle[],
 } & MongoEntry;
 
 /** Vehicle Information */
@@ -126,9 +128,7 @@ export type GroupUsers = UserReference & {
     permissions: number
 };
 
-
 // Query Lookups
 export type Identifiers = {
     ids: Types.ObjectId[];
 }
-

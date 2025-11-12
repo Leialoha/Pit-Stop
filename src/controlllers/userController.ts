@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { IUser, UserModel } from '../database';
-import { validateEmail, validatePhoneNumber } from '../utils/validators';
+import { validateContents, validateEmail, validateName, validatePhoneNumber } from '../utils/validators';
 import { sendClientError, sendStatus, systemTime } from '../utils';
 import { BinaryLike, createHash, randomInt } from 'crypto';
 
@@ -47,17 +47,17 @@ export async function getUser(req: Request, res: Response) {
         resolve(result);
     });
 
-    // If not found, return 404
+    const anonymousUser: Partial<IUser> = { name: 'Anonymous User', phone: null, email: null, _id: null };
+
     // If lookup is self, return full user object
-    // If lookup is by phone, return 200 OK with no body
     // If lookup is by ID, return the masked user object
+    // If lookup is by phone and not self, return anonymous user
 
     // We want to avoid leaking personal info via phone lookups
     // While IDs are less accessible, we can return full info there
 
-    if (!lookup) return sendStatus(res, 404);
-    if (lookup.phone == selfPhone) return res.json(lookup);
-    if (lookupBy == phone) return sendStatus(res, 200);
+    if (lookup?.phone == selfPhone) return res.json(lookup);
+    if (!lookup || lookupBy == phone) return res.json(anonymousUser);
     res.json(lookup);
 }
 
@@ -106,21 +106,47 @@ export async function requestLogin(req: Request, res: Response) {
  * @route   POST /api/users/:number/login
  */
 export async function validateLogin(req: Request, res: Response) {
-    const { code, email: emailStr, name } = req.body;
-
-    const { isValid: isValidEmail, email } = validateEmail(emailStr);
+    // Validate phone number before anything else
     const { isValid: isValidPhone, phone } = validatePhoneNumber(req.params.number as string);
-
     if (!isValidPhone) return sendClientError(res, LANG.INVALID_PHONE_NUMBER);
-    if (!isValidEmail && emailStr) return sendClientError(res, LANG.INVALID_EMAIL_ADDRESS);
-
+    
     const hash = quickHash( phone );
+    const userExists = tempUsers[hash] == null;
     const { code: OTP_CODE, expires: OTP_EXPIRES } = getOtp(hash);
+
+    // Determine which fields to validate based on user existence
+    const fieldsToValidate = userExists ? ['code'] : ['code', 'email', 'name'];
+
+    // Validate body contents
+    const { isValid, contents, unallowedKeys } = validateContents(req.body, fieldsToValidate);
+    if (!isValid) return sendClientError(res, LANG.INVALID_PARAMETERS_EXTRA_KEYS(unallowedKeys));
+
+    // Validate OTP code
+    const { code, email: emailStr, name: nameStr } = contents;
+    if (typeof code !== 'string' || code.trim().length == 0)
+        return sendClientError(res, LANG.INVALID_OTP_CODE);
 
     if (OTP_EXPIRES <= systemTime()) return sendClientError(res, LANG.INVALID_OTP_CODE)
     else if (OTP_CODE != code) return sendClientError(res, LANG.INVALID_OTP_CODE);
 
-    if (tempUsers[hash] != null) {
+    // If new user, validate email and create user
+    if (!userExists) {
+        const { isValid: isValidEmail, email } = validateEmail(emailStr);
+        if (!isValidEmail) return sendClientError(res, LANG.INVALID_EMAIL_ADDRESS);
+
+        // Validate user's name
+        const { isValid: isValidName, name, reason } = validateName(nameStr);
+
+        if (!isValidName) {
+            if (reason == 'empty')
+                return sendClientError(res, LANG.INVALID_FIELD('Name cannot be empty'));
+            if (reason == 'too_short')
+                return sendClientError(res, LANG.INVALID_FIELD('Name too short (min 3 characters)'));
+            if (reason == 'too_long')
+                return sendClientError(res, LANG.INVALID_FIELD('Name too long (max 50 characters)'));
+            return sendClientError(res, LANG.INVALID_FIELD('Name is invalid'));
+        }
+
         let user = await UserModel.create({ name, phone, email })
             .catch((err) => sendClientError(res, err?.message || `${err}`, 500));
 
@@ -132,10 +158,7 @@ export async function validateLogin(req: Request, res: Response) {
     sendStatus(res, 200);
 }
 
-
-
-
-
+// Utility functions
 
 function getOtp(hash: string) {
     const data = tempUserOtps[hash];
@@ -148,4 +171,3 @@ function quickHash(data: BinaryLike) {
         .update(data)
         .digest('hex');
 }
-
