@@ -7,20 +7,6 @@ import { validateVIN } from "../utils/validators";
 
 
 /**
- * @desc    Get the list of the user's groups
- * @route   GET /api/vehicles/lookup
- */
-export async function getVehicle(req: Request, res: Response) {
-    // This is an internal header (look at utils/validators.ts)
-    const phone = req.headers['X-Phone'] as string;
-    const { id: idStr } = req.query as { id: string };
-    const vehicle = lookupVehicleById(idStr, phone);
-
-    if (vehicle) res.json(vehicle);
-    else sendStatus(res, 404);
-}
-
-/**
  * @desc    Create a vehicle
  * @route   POST /api/vehicles/
  */
@@ -43,6 +29,19 @@ export async function createVehicle(req: Request, res: Response) {
     return res.json(vehicle);
 }
 
+/**
+ * @desc    Get the list of the user's groups
+ * @route   GET /api/vehicles/lookup
+ */
+export async function getVehicle(req: Request, res: Response) {
+    // This is an internal header (look at utils/validators.ts)
+    const phone = req.headers['X-Phone'] as string;
+    const { id: idStr } = req.query as { id: string };
+    const vehicle = await lookupVehicleById(idStr, phone);
+
+    if (vehicle) res.json(vehicle);
+    else sendStatus(res, 404);
+}
 
 /**
  * @desc    Get vehicle details by VIN

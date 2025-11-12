@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { GroupModel, GroupUsers, IGroup } from "../database";
-import { randomName } from "../utils";
+import { randomName, sendStatus } from "../utils";
 import { validatePhoneNumber } from "../utils/validators";
-import { fillGroups, findUsers, lookupGroups } from "../database/lookup";
+import { fillGroups, findUsers, lookupGroupById, lookupGroups } from "../database/lookup";
 
 
 /**
@@ -35,6 +35,20 @@ export async function createGroup(req: Request, res: Response) {
     res.json(group);
 }
 
+
+/**
+ * @desc    Get the list of the user's groups
+ * @route   GET /api/groups/lookup
+ */
+export async function getGroup(req: Request, res: Response) {
+    // This is an internal header (look at utils/validators.ts)
+    const phone = req.headers['X-Phone'] as string;
+    const { id: idStr } = req.query as { id: string };
+    const group = await lookupGroupById(idStr, phone);
+
+    if (group) res.json(group);
+    else sendStatus(res, 404);
+}
 
 
 

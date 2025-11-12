@@ -118,7 +118,7 @@ export type IReminder = {
 
 // Interface Values
 export type UserReference = RequireOne<{
-    userId: Types.ObjectId
+    userID: Types.ObjectId
     phone: string,
 }>;
 

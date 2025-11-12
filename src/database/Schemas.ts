@@ -37,13 +37,13 @@ UserSchema.pre('save', async function (next) {
 });
 
 const GroupPermissionSchema = new Schema<GroupUsers>({
-    userId: { type: Schema.Types.ObjectId, refPath: 'users' },
+    userID: { type: Schema.Types.ObjectId, refPath: 'users' },
     phone: { type: String },
     permissions: { type: Number }
 }, { _id: false });
 
 GroupPermissionSchema.pre('save', async function (next) {
-    if (!(this.userId || this.phone))
+    if (!(this.userID || this.phone))
         return next(new Error(LANG.INVALID_USER_REFERENCE));
 
     if (this.isModified('phone') && this.phone) {

@@ -18,10 +18,10 @@ function getUserReferences(phones: string[]) {
         unwindBy('$phones'),
         { $lookup: {
             from: "users",
-            let: { phone: '$phone' },
+            let: { phone: '$phones' },
             pipeline: [
                 { $match: { $expr: {
-                    $eq: [ "$$phone", "$phone", ]
+                    $eq: [ "$$phone", "$phone" ]
                 } } }
             ],
             as: "user"
@@ -29,15 +29,15 @@ function getUserReferences(phones: string[]) {
         unwindBy('$user'),
         { $replaceWith: {
             phone: { $cond: {
-                if: { $first: "$users" },
+                if: "$user",
                 then: null,
                 else: "$phones"
             } },
-            userId: { $cond: {
-                if: { $first: "$users" },
+            userID: { $cond: {
+                if: "$user",
                 then: { $getField: {
                     field: "_id",
-                    input: { $first: "$users" }
+                    input: "$user"
                 } },
                 else: null
             } }
@@ -51,13 +51,13 @@ function lookupGroupsByUser() {
         { $lookup: {
             from: "groups",
             let: {
-                userId: "$user._id",
+                userID: "$user._id",
                 phone: "$user.phone"
             },
             pipeline: [
                 { $match: { $expr: {
                     $or: [
-                        { $in: [ "$$userId", "$users.userId" ] },
+                        { $in: [ "$$userID", "$users.userID" ] },
                         { $in: [ "$$phone", "$users.phone" ] }
                     ]
             } } }
@@ -68,14 +68,18 @@ function lookupGroupsByUser() {
     ];
 }
 
+function fetchVehiclesByGroup() {
+    return { $lookup: {
+        from: "vehicles",
+        localField: 'group._id',
+        foreignField: 'groupID',
+        as: "vehicle"
+    } };
+}
+
 function lookupVehiclesByGroup() {
     return [
-        { $lookup: {
-            from: "vehicles",
-            localField: 'group._id',
-            foreignField: 'groupId',
-            as: "vehicle"
-        } },
+        fetchVehiclesByGroup(),
         unwindBy('$vehicle')
     ];
 }
@@ -94,7 +98,7 @@ function updatePermissionReference() {
                 if: { $eq: [ '$user.phone', '$permission.phone' ] },
                 then: { $mergeObjects: [
                     '$permission',
-                    { userId: '$user._id', phone: null }
+                    { userID: '$user._id', phone: null }
                 ] },
                 else: '$permission'
             } }
@@ -131,6 +135,9 @@ function replaceRoot(newRoot: string | object = '$$ROOT') {
 export async function findUsers(phonesStr: string[]): Promise<UserReference[]> {
     const phones = phonesStr.map(validatePhoneNumber)
         .filter(ref => ref.isValid).map(ref => ref.phone);
+
+    console.log(phonesStr, phones);
+
     if (phones.length == 0) return [];
 
     return await UserModel.aggregate(getUserReferences( phones ));
@@ -192,12 +199,14 @@ export async function lookupGroupById(id: string, phoneStr: string): Promise<IGr
     const { isValid, phone} = validatePhoneNumber(phoneStr);
     if (!isValid) return null;
 
-    return await UserModel.aggregate([
+    return (await UserModel.aggregate([
         filterExistingUsersByPhone([ phone ]),
         ...lookupGroupsByUser(),
+        fetchVehiclesByGroup(),
+        { $set: { group: { $mergeObjects: ['$group', { vehicles: '$vehicle' }] } } },
         replaceRoot('$group'),
         matchById(_id)
-    ])[0];
+    ]))[0];
 }
 
 export async function lookupVehicles(phoneStr: string): Promise<IVehicle[]> {
@@ -217,11 +226,12 @@ export async function lookupVehicleById(id: string, phoneStr: string): Promise<I
     const { isValid, phone} = validatePhoneNumber(phoneStr);
     if (!isValid) return null;
 
-    return await UserModel.aggregate([
+    return (await UserModel.aggregate([
         filterExistingUsersByPhone([ phone ]),
         ...lookupGroupsByUser(),
         ...lookupVehiclesByGroup(),
+        replaceRoot('$vehicle'),
         matchById(_id)
-    ])[0];
+    ]))[0];
 }
 

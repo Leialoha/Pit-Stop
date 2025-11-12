@@ -10,4 +10,7 @@ router.route('/')
     .get(controller.getGroups)
     .post(controller.createGroup)
 
+router.route('/lookup')
+    .get(controller.getGroup)
+
 export default router;
