@@ -1,8 +1,6 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 
-import userRouter from './routes/users';
-import groupRouter from './routes/groups';
-import vehicleRouter from './routes/vehicles';
+import * as routes from './routes';
 import { ResponseStatusException } from './types';
 import { cookieSession } from './utils/session';
 import { clientHeaders } from './utils/validators';
@@ -19,10 +17,11 @@ app.use(function (err: Error, req: Request, res: Response, next: NextFunction) {
 });
 
 const apiRouter = Router();
-apiRouter.use('/users', userRouter);
-apiRouter.use('/groups', groupRouter);
-apiRouter.use('/vehicles', vehicleRouter);
+apiRouter.use('/users', routes.users);
+apiRouter.use('/groups', routes.groups);
+apiRouter.use('/vehicles', routes.vehicles);
+apiRouter.use('/expenses', routes.expenses);
 
-app.use('/api', apiRouter);
+app.use('/api/v1', apiRouter);
 
 export default app;

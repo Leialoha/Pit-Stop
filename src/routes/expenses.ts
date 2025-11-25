@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import * as controller from "../controllers/groupController";
+import * as controller from "../controllers/expenseController";
 import { validateAuthorization } from "../utils/validators";
 
 const router = Router();
@@ -8,10 +8,10 @@ const router = Router();
 router.use(validateAuthorization);
 
 router.route('/')
-    .get(controller.getGroup)
-    .post(controller.createGroup)
+    .get(controller.getExpense)
+    .post(controller.createExpense)
 
 router.route('/bulk')
-    .get(controller.getGroups)
+    .get(controller.getExpenses)
 
 export default router;

@@ -8,10 +8,8 @@ const router = Router();
 router.use(validateAuthorization);
 
 router.route('/')
-    .post(controller.createVehicle)
-
-router.route('/lookup')
     .get(controller.getVehicle)
+    .post(controller.createVehicle)
 
 router.route('/vin')
     .get(controller.getVINDetails)

@@ -33,7 +33,7 @@ UserSchema.pre('save', async function (next) {
 
     if (this.isModified('email')) {
         let { isValid, email } = validateEmail(this.email);
-        if (!isValid) return next(new Error(LANG.INVALID_PHONE_NUMBER));
+        if (!isValid) return next(new Error(LANG.INVALID_EMAIL_ADDRESS));
         else this.email = email;
     }
     
@@ -86,20 +86,22 @@ const ReminderSchema = new Schema<IReminder>({
 
 const ExpenseRecordSchema = new Schema<IExpenseRecord>({
     vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
+    attachmentID: { type: Schema.Types.ObjectId, ref: 'attachments' },
     odometer: { type: Number },
     dateOfRecord: { type: Date, default: new Date(), required },
     vendor: { type: String, required, trim, minlength, maxlength },
-    wasService: { type: Boolean, required },
-    category: { type: String, required, trim, minlength, maxlength },
-    description: { type: String, required, trim, minlength, maxlength },
+    wasService: { type: Boolean, default: false, required },
+    category: { type: String, required, trim, maxlength },
+    description: { type: String, required, trim, maxlength },
     totalCost: { type: Number, required },
+    quantity: { type: Number, default: 1, required },
     paymentMethod: { type: String, trim, minlength, maxlength },
     warrantyInfo: { type: String, trim, minlength, maxlength }
 }, hideOptions());
 
 const ServiceRecordSchema = new Schema<IServiceRecord>({
     vehicleID: { type: Schema.Types.ObjectId, required, ref: 'vehicles' },
-    recordID: { type: Schema.Types.ObjectId, ref: 'expenses' },
+    expenseID: { type: Schema.Types.ObjectId, ref: 'expenses' },
     odometer: { type: Number, required },
     serviceType: { type: String, required },
     nextDueDate: { type: Date },

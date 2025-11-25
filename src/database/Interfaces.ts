@@ -64,7 +64,7 @@ export type IServiceRecord = {
     /** Unique ID of the vehicle */
     vehicleID: Types.ObjectId,
     /** Unique ID of the expense */
-    recordID?: Types.ObjectId,
+    expenseID?: Types.ObjectId,
     /** Mileage at the time of service */
     odometer: number,
     /** Oil Change, Tire Rotation, Brake Service, etc. */
@@ -84,7 +84,7 @@ export type IExpenseRecord = {
     /** Unique ID of the vehicle */
     vehicleID: Types.ObjectId,
     /** Unique ID of the attachment */
-    attachmentID:  Types.ObjectId,
+    attachmentID?:  Types.ObjectId,
     /** Mileage at the time of expense */
     odometer?: number,
     /** Purchase date */
@@ -99,6 +99,8 @@ export type IExpenseRecord = {
     description: string,
     /** Total expense */
     totalCost: number,
+    /** Total amount of items */
+    quantity: number,
     /** Credit, cash, etc */
     paymentMethod?: string,
     /** Optional for tracking coverage */

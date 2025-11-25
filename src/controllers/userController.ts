@@ -24,8 +24,22 @@ const tempUsers: { [key: string]: TempUser; } = {}
 const tempUserOtps: { [key: string]: TempUserOTP; } = {}
 
 /**
+ * @desc    Get the current user's info
+ * @route   GET /api/users/self
+ */
+export async function getSelf(req: Request, res: Response) {
+    // This is an internal header (look at utils/validators.ts)
+    const phone = req.headers['X-Phone'] as string;
+
+    const user = await lookupUser( phone );
+    if (user == null) return sendClientError(res, LANG.USER_NOT_FOUND, 404);
+
+    res.json(user);
+}
+
+/**
  * @desc    Get a single user by phone number
- * @route   GET /api/users/lookup
+ * @route   GET /api/users
  */
 export async function getUser(req: Request, res: Response) {
     // This is an internal header (look at utils/validators.ts)
@@ -124,7 +138,7 @@ export async function validateLogin(req: Request, res: Response) {
 
     // Validate OTP code
     const { code, email: emailStr, name: nameStr } = contents;
-    if (typeof code !== 'string' || code.trim().length == 0)
+    if (typeof code !== 'string' || !/^\d{6}$/.test(code.trim()))
         return sendClientError(res, LANG.INVALID_OTP_CODE);
 
     if (OTP_EXPIRES <= systemTime()) return sendClientError(res, LANG.INVALID_OTP_CODE)

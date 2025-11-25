@@ -17,7 +17,7 @@ export type ValidationResult<T> =
 export type ValidationResultWithErrors<T, E> = 
     ValidationResult<T> & ValidationErrors<E>;
 
-type ValidationErrors<T> = 
+export type ValidationErrors<T> = 
     ({ isValid: true; } & Nevered<T>) |
     ({ isValid: false; } & T);
 
@@ -92,6 +92,16 @@ export function validateContents<T, Keys extends keyof T>(contents: T, allowedKe
     if (hasExtra) return { isValid: false, unallowedKeys };
 
     return { isValid: true, contents };
+}
+
+export function requireContents<T, Keys extends keyof T>(contents: T, requiredKeys: Keys[]) : ValidationErrors<{ missingKeys: Keys[] }> {
+    const contentKeys = Object.keys(contents) as Keys[];
+    const missingKeys = requiredKeys.filter(key => !contentKeys.includes(key));
+
+    const hasMissing = missingKeys.length > 0;
+    if (hasMissing) return { isValid: false, missingKeys };
+
+    return { isValid: true };
 }
 
 export function clientHeaders(req: Request, res: Response, next: NextFunction) {

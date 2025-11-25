@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { IGroup, IUser, IVehicle, UserReference } from "./interfaces";
+import { IExpenseRecord, IGroup, IUser, IVehicle, UserReference } from "./interfaces";
 import { GroupModel, UserModel } from "./schemas";
 import { validatePhoneNumber } from "../utils/validators";
 
@@ -78,10 +78,26 @@ function fetchVehiclesByGroup() {
     } };
 }
 
+function fetchExpensesByVehicle() {
+    return { $lookup: {
+        from: "expenses",
+        localField: 'vehicle._id',
+        foreignField: 'vehicleID',
+        as: "expense"
+    } };
+}
+
 function lookupVehiclesByGroup() {
     return [
         fetchVehiclesByGroup(),
         unwindBy('$vehicle')
+    ];
+}
+
+function lookupExpensesByVehicle() {
+    return [
+        fetchExpensesByVehicle(),
+        unwindBy('$expense')
     ];
 }
 
@@ -236,3 +252,30 @@ export async function lookupVehicleById(id: string, phoneStr: string): Promise<I
     ]))[0];
 }
 
+export async function lookupExpenses(phoneStr: string): Promise<IExpenseRecord[]> {
+    const { isValid, phone } = validatePhoneNumber(phoneStr);
+    if (!isValid) return [];
+
+    return await UserModel.aggregate([
+        filterExistingUsersByPhone([ phone ]),
+        ...lookupGroupsByUser(),
+        ...lookupVehiclesByGroup(),
+        ...lookupExpensesByVehicle(),
+        replaceRoot('$expense')
+    ]);
+}
+
+export async function lookupExpenseById(id: string, phoneStr: string): Promise<IExpenseRecord> {
+    const _id = Types.ObjectId.createFromHexString(id);
+    const { isValid, phone} = validatePhoneNumber(phoneStr);
+    if (!isValid) return null;
+
+    return (await UserModel.aggregate([
+        filterExistingUsersByPhone([ phone ]),
+        ...lookupGroupsByUser(),
+        ...lookupVehiclesByGroup(),
+        ...lookupExpensesByVehicle(),
+        replaceRoot('$expense'),
+        matchById(_id)
+    ]))[0];
+}

@@ -8,19 +8,15 @@
 
 ## :pushpin: Features
 
-Track all your vehicle maintenance and service history.
-
-Record expenses and upcoming service schedules.
-
-Manage multiple users, groups, and vehicles easily.
-
-Secure authentication with OTP login.
-
+- Track all your vehicle maintenance and service history.
+- Record expenses and upcoming service schedules.
+- Manage multiple users, groups, and vehicles easily.
+- Secure authentication with OTP login.
 
 ## :hammer_and_wrench: API Endpoints
 
 | Method | Path                  | Auth Required      | Description                                   |
-|--------|-----------------------|--------------------|-----------------------------------------------|
+|-------:|-----------------------|:------------------:|-----------------------------------------------|
 | `GET`  | `/users/NUMBER/login` |                    | Log into an account.                          |
 | `POST` | `/users/NUMBER/login` |                    | Creates a One-Time Password.                  |
 | `GET`  | `/users/lookup`       |                    | Fetch a specific user by query parameters.    |
@@ -59,11 +55,11 @@ Secure authentication with OTP login.
 | Variable         | Description                                                     | Default Value |
 |------------------|-----------------------------------------------------------------|---------------|
 | `DB_PROTOCOL`    | The Protocol of the MongoDB database                            | `mongodb`     |
-| `DB_HOSTNAME`    | The IP / Hostname of the MongoDB database                       | ` `           |
-| `DB_PORT`        | The port of the MongoDB database                                | ` `           |
-| `DB_NAME`        | The database name                                               | ` `           |
-| `DB_USERNAME`    | The database username                                           | ` `           |
-| `DB_PASSWORD`    | The database password                                           | ` `           |
+| `DB_HOSTNAME`    | The IP / Hostname of the MongoDB database                       |               |
+| `DB_PORT`        | The port of the MongoDB database                                |               |
+| `DB_NAME`        | The database name                                               |               |
+| `DB_USERNAME`    | The database username                                           |               |
+| `DB_PASSWORD`    | The database password                                           |               |
 | `HOST`           | The webserver hostname                                          | `0.0.0.0`     |
 | `PORT`           | The webserver port                                              | `3000`        |
 
