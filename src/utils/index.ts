@@ -9,6 +9,7 @@ export function sendStatus(res: Response, code: number) {
 
 export function sendClientError(res: Response, message: string, code: number = 400) {
     res.status(code).json({ code, message });
+    return null;
 }
 
 export function systemTime(future: number = 0) {

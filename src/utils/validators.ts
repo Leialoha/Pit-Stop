@@ -5,6 +5,7 @@ import { quickDecode } from '@cardog/corgi';
 
 import { sendStatus } from '.';
 import { fetchClientSession } from './session';
+import { Types } from 'mongoose';
 
 export type Nevered<T> = {
     [K in keyof T]?: never;
@@ -46,6 +47,14 @@ export function validatePhoneNumber(phoneStr: string) : ValidationResult<{ phone
     const { isValid, phoneNumber: phone } = phoneValidate(phoneStr, { country: 'USA' });
     if (!isValid) return { isValid: false };
     return { isValid, phone };
+}
+
+export function validateObjectID(idStr: string) : ValidationResult<{ id: string, _id: Types.ObjectId }> {
+    const isValid = /^[a-f\d]{24}$/gi.test(idStr);
+    if (!isValid) return { isValid: false };
+
+    const _id = Types.ObjectId.createFromHexString(idStr);
+    return { isValid, id: idStr, _id };
 }
 
 export function validateEmail(emailStr: string) : ValidationResult<{ email: string }> {

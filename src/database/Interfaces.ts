@@ -36,7 +36,7 @@ export type IGroup = {
     /** Details about group */
     description?: string,
     /** Unique IDs of the users */
-    users: GroupUsers[],
+    users: GroupUser[],
     /** Unique entries of group vehicles */
     vehicles?: IVehicle[],
 } & MongoEntry;
@@ -122,16 +122,30 @@ export type IReminder = {
 } & MongoEntry;
 
 // Interface Values
-export type UserReference = RequireOne<{
-    userID: Types.ObjectId
-    phone: string,
-}>;
 
-export type GroupUsers = UserReference & {
+type Result<T, Name extends string> = Required<
+    T & { [_ in `${Lowercase<Name>}ID`]: Types.ObjectId }
+>
+
+type Lookup<T, Name extends string = ''> = RequireOne<
+    T & { [_ in `${Lowercase<Name>}ID`]: string }
+>
+
+
+export type UserReference = Result<Pick<IUser, 'phone'>, 'user'>;
+
+export type GroupUser = UserReference & {
     permissions: number
 };
 
+export type TempUser = Partial<IUser> & {
+    exists: boolean
+};
+
 // Query Lookups
+
+export type UserLookup = Lookup<Pick<IUser, 'phone'>, 'user'>;
+
 export type Identifiers = {
     ids: Types.ObjectId[];
 }

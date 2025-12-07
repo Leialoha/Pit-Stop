@@ -3,17 +3,13 @@ import { Request, Response } from 'express';
 
 import * as LANG from '../constants/lang';
 import { OTP_TIMEOUT } from '../constants/system';
-import { IUser, UserModel } from '../database';
+import { IUser, TempUser, UserLookup, UserModel } from '../database';
 import { lookupUser } from '../database/lookup';
 import { sendClientError, sendStatus, systemTime } from '../utils';
 import { generateClientSession } from '../utils/session';
 import { validateContents, validateEmail, validateName, validatePhoneNumber } from '../utils/validators';
+import { DatabaseLookup } from '../features/dal';
 
-
-type TempUser = Partial<IUser> & {
-    hash: string,
-    exists: boolean
-};
 
 type TempUserOTP = {
     code: string;
@@ -48,31 +44,18 @@ export async function getUser(req: Request, res: Response) {
 
     const id = /^[\da-f]{24}$/i.test(idStr || '') ? idStr : null;
     const phone = validatePhoneNumber(phoneStr as string).isValid ? phoneStr : null;
-    const lookupBy = (phone ?? id)?.trim();
 
-    // If no valid lookup provided, return 400
-    if (!lookupBy) return sendClientError(res, LANG.INVALID_USER_REFERENCE);
+    const lookup = await DatabaseLookup()
+        .withSelf({ phone: selfPhone, userID: null })
+        .findUser({ phone: phone, userID: id })
+        // TODO: Currently if no user is found, no element is returned.
+        // An "abstract" user should be returned to keep privacy intact.
+        // There should be no indicator if the user exists or not.
+        .createFake()
+        .maskDetails()
+        .hideDetails()
+        .removeLookupDetails();
 
-    const lookup = await new Promise<IUser>(async (resolve) => {
-        const result = await lookupUser(lookupBy);
-        if (!result || result.phone == selfPhone) return resolve(result);
-
-        result.phone = result.phone.replace(/\d(?=\d{4})/gi, '*');
-        result.email = result.email.replace(/(?<!^|[@])\w+(?![^.]*$|[@])/gi, '***');
-        resolve(result);
-    });
-
-    const anonymousUser: Partial<IUser> = { name: 'Anonymous User', phone: null, email: null, _id: null };
-
-    // If lookup is self, return full user object
-    // If lookup is by ID, return the masked user object
-    // If lookup is by phone and not self, return anonymous user
-
-    // We want to avoid leaking personal info via phone lookups
-    // While IDs are less accessible, we can return full info there
-
-    if (lookup?.phone == selfPhone) return res.json(lookup);
-    if (!lookup || lookupBy == phone) return res.json(anonymousUser);
     res.json(lookup);
 }
 
@@ -84,7 +67,6 @@ export async function requestLogin(req: Request, res: Response) {
     const { isValid, phone } = validatePhoneNumber(req.params.number as string);
     if (!isValid) return sendClientError(res, LANG.INVALID_PHONE_NUMBER);
 
-    let partialUser: TempUser;
     const hash = quickHash( phone );
 
     if (tempUserOtps[hash] != null) {
@@ -97,14 +79,15 @@ export async function requestLogin(req: Request, res: Response) {
             return sendClientError(res, LANG.TOO_MANY_REQUESTS, 403);
     }
 
-    if (tempUsers[hash] == null) {
-        partialUser = await lookupUser( phone )
-            .then(user => (user == null ? { phone } : user) as IUser)
-            .then(user => ({ ...user, hash, exists: user._id != null } as TempUser))
-
-        if (!partialUser.exists)
-            tempUsers[hash] = partialUser;
-    } else partialUser = tempUsers[hash];
+    const tempUser =
+        // Load from temp cache if exists
+        tempUsers[hash] ?? 
+        // Otherwise, lookup from DB
+        await DatabaseLookup()
+            .withSelf({ phone, userID: null })
+            .getSelf()
+            .asTempUser()
+            .removeLookupDetails();
 
     tempUserOtps[hash] = {
         expires: systemTime(OTP_TIMEOUT),
@@ -112,7 +95,7 @@ export async function requestLogin(req: Request, res: Response) {
     }
 
     console.log(tempUserOtps[hash]);
-    sendStatus(res, partialUser.exists ? 200 : 201);
+    sendStatus(res, tempUser.exists ? 200 : 201);
 }
 
 
@@ -124,10 +107,11 @@ export async function validateLogin(req: Request, res: Response) {
     // Validate phone number before anything else
     const { isValid: isValidPhone, phone } = validatePhoneNumber(req.params.number as string);
     if (!isValidPhone) return sendClientError(res, LANG.INVALID_PHONE_NUMBER);
-    
+
     const hash = quickHash( phone );
     const userExists = tempUsers[hash] == null;
     const { code: OTP_CODE, expires: OTP_EXPIRES } = getOtp(hash);
+    let userId: string = tempUsers[hash]?._id?.toHexString()
 
     // Determine which fields to validate based on user existence
     const fieldsToValidate = userExists ? ['code'] : ['code', 'email', 'name'];
@@ -162,14 +146,15 @@ export async function validateLogin(req: Request, res: Response) {
             return sendClientError(res, LANG.INVALID_FIELD('Name is invalid'));
         }
 
-        let user = await UserModel.create({ name, phone, email })
+        let user: IUser = await UserModel.create({ name, phone, email })
             .catch((err) => sendClientError(res, err?.message || `${err}`, 500));
 
         delete tempUsers[hash];
         if (user == null) return;
+        userId = user._id.toHexString();
     }
 
-    generateClientSession(req, phone);
+    generateClientSession(req, phone, userId);
     sendStatus(res, 200);
 }
 

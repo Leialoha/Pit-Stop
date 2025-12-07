@@ -25,6 +25,7 @@ export type ClientSessionData = {
     ipVersion: string | 'IPv4' | 'IPv6',
 
     phone: string,
+    userId: string,
     sessionId: string
 
     token: string
@@ -35,14 +36,14 @@ export type ClientSessionData = {
     [key: string]: any
 }
 
-export function generateClientSession(req: Request, phone: string) {
+export function generateClientSession(req: Request, phone: string, userId: string) {
     const { family: ipVersion, address: ipAddress } = req.socket.address() as Partial<AddressInfo>;
 
     const sessionId = randomBytes(16).toString('hex');
     const encodedAddress = encodeBase64({ ipVersion, ipAddress })
 
     const session = `${sessionId}.${encodedAddress}`;
-    const token = jwt.sign({ phone, session });
+    const token = jwt.sign({ phone, userId, session });
     req.session.authorization = `Bearer ${token}`
 }
 
@@ -54,14 +55,14 @@ export function fetchClientSession(req: Request) : ClientSessionData {
         const [ tokenType, token ] = authorization;
         if (tokenType != 'Bearer') return { isValid: false, error: new Error('Invalid token type') };
     
-        const { phone, session: sessionData } = jwt.verify(token) as JwtPayload;
+        const { phone, userId, session: sessionData } = jwt.verify(token) as JwtPayload;
         const { length: sdLength, '0': sessionId, '1': encodedAddress } = sessionData.split('.');
         if (sdLength != 2) return { isValid: false, error: new Error('Invalid session data') };
     
         const decodedAddress = decodeBase64(encodedAddress);
         const { ipVersion, ipAddress } = JSON.parse(decodedAddress);
     
-        return { phone, sessionId, ipVersion, ipAddress, tokenType, token, isValid: true };
+        return { phone, userId, sessionId, ipVersion, ipAddress, tokenType, token, isValid: true };
     } catch (error) {
         return { isValid: false, error }
     }

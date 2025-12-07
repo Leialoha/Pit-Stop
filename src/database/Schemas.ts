@@ -1,6 +1,6 @@
 import { model, Schema, SchemaOptions } from 'mongoose';
 
-import { IUser, IGroup, IVehicle, IReminder, IExpenseRecord, IServiceRecord, IAttachment, MongoEntry, GroupUsers } from './interfaces';
+import { IUser, IGroup, IVehicle, IReminder, IExpenseRecord, IServiceRecord, IAttachment, MongoEntry, GroupUser } from './interfaces';
 import * as LANG from '../constants/lang';
 import { validateEmail, validatePhoneNumber } from '../utils/validators';
 
@@ -40,7 +40,7 @@ UserSchema.pre('save', async function (next) {
     next();
 });
 
-const GroupPermissionSchema = new Schema<GroupUsers>({
+const GroupPermissionSchema = new Schema<GroupUser>({
     userID: { type: Schema.Types.ObjectId, refPath: 'users' },
     phone: { type: String },
     permissions: { type: Number }

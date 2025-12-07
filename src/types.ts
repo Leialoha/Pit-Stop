@@ -146,3 +146,7 @@ export type RequireOne<T, Keys extends keyof T = keyof T> = {
         & Omit<T, Keys>
 }[Keys];
 
+export type ElementOf<T> = T extends (infer U)[] ? U : T;
+
+type Condense<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
+export type Intersect<U> = Omit<Condense<U>, never>;

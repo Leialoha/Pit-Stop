@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import * as LANG from "../constants/lang";
-import { GroupModel, GroupUsers, IGroup } from "../database";
+import { GroupModel, GroupUser, IGroup } from "../database";
 import { fillGroups, findUsers, lookupGroupById, lookupGroups } from "../database/lookup";
 import { randomName, sendClientError } from "../utils";
 import { validateContents, validatePhoneNumber } from "../utils/validators";
@@ -38,7 +38,7 @@ export async function createGroup(req: Request, res: Response) {
 
     // Let's create user references
     const users = (await findUsers(phones))
-        .map(ref => ({...ref, permissions: 0b001}) as GroupUsers);
+        .map(ref => ({...ref, permissions: 0b001}) as GroupUser);
 
     const group: IGroup = await GroupModel.create({ name, users });
     res.json(group);
